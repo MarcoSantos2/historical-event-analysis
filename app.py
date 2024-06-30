@@ -1,12 +1,10 @@
-from flask import Flask, render_template_string, jsonify
+from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    with open("index.html") as file:
-        content = file.read()
-    return render_template_string(content)
+    return render_template('index.html')
 
 @app.route('/data')
 def data():
