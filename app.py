@@ -10,7 +10,6 @@ def index():
 
 @app.route('/data')
 def data():
-    # This will be replaced with actual data fetching from the database
     return jsonify([])
 
 if __name__ == '__main__':
