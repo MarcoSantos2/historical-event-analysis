@@ -1,12 +1,14 @@
 # historical-event-analysis
 Historical Event Analysis and Visualization app
 
+Description: An app that collects data on significant historical events, analyzes their impact, and displays them in an interactive timeline.
+
 Technology Stack
 1.	Front End:
 o	HTML/CSS: For structuring and styling the web page.
 o	JavaScript: For adding interactivity to the web page.
 o	D3.js: For creating interactive data visualizations.
-o	Bootstrap: (Optional) For responsive design and pre-styled components.
+o	Bootstrap: For responsive design and pre-styled components.
 
 2.	Back End:
 o	Python: For writing the core logic of your application.
@@ -20,6 +22,8 @@ o	SQLAlchemy: ORM to interact with the database using Python.
 o	Pandas: For data manipulation and analysis.
 o	NumPy: For numerical computations.
 
-Testing Github
+5. Version Control:
+o	Github
+o	Git
 
 
