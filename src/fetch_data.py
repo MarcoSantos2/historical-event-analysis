@@ -1,10 +1,18 @@
-# src/fetch_data.py
 import requests
 from bs4 import BeautifulSoup
-from app import app, db, Event
+from app import app, db, Discovery, EconomicData
+import pandas as pd
 
 API_ENDPOINT = 'https://en.wikipedia.org/w/api.php'
-HISTORICAL_EVENTS = ['World War II', 'Moon Landing', 'Fall of the Berlin Wall', 'American Revolution']
+HISTORICAL_EVENTS = [
+    'Steam Engine', 'Spinning Jenny', 'Electricity and Lightning Rod', 'Vaccination', 
+    'Electric Telegraph', 'Telephone', 'Light Bulb', 'Photography', 'Pasteurization', 
+    'Periodic Table', 'Airplane', 'Theory of Relativity', 'Quantum Mechanics', 
+    'Penicillin', 'Radar', 'Nuclear Fission', 'DNA Structure', 'Computer', 'Internet', 
+    'Laser', 'Moon Landing', 'Human Genome Project', 'Smartphones', 'CRISPR Gene Editing', 
+    'Artificial Intelligence and Machine Learning', 'COVID-19 mRNA Vaccines'
+]
+MADDISON_FILE_PATH = '/mnt/d/repo/historical-event-analysis/src/mpd2020.xlsx'
 
 def clean_html(raw_html):
     soup = BeautifulSoup(raw_html, "html.parser")
@@ -17,23 +25,50 @@ def fetch_and_store_events():
                 'action': 'query',
                 'list': 'search',
                 'srsearch': event,
-                'format': 'json'
+                'format': 'json',
+                'redirects': 1,  # Follow redirects
+                'srlimit': 1  # Limit to one result so you don't get multiple results for the same event
             }
             response = requests.get(API_ENDPOINT, params=params)
-            if response.status_code == 200:
+            try:
                 data = response.json()
-                search_results = data.get('query', {}).get('search', [])
-                for result in search_results:
-                    clean_snippet = clean_html(result['snippet'])
-                    event_entry = Event(
-                        title=result['title'],
-                        snippet=clean_snippet
-                    )
-                    db.session.add(event_entry)
-            else:
-                print(f"Failed to fetch data for {event}: {response.status_code}")
+            except requests.exceptions.JSONDecodeError:
+                print(f"Failed to decode JSON for {event}: {response.text}")
+                continue
+
+            search_results = data.get('query', {}).get('search', [])
+            if search_results:
+                result = search_results[0]
+                clean_snippet = clean_html(result['snippet'])
+                event_entry = Discovery(
+                    name=result['title'],
+                    date='Unknown',  # Adjust as needed
+                    description=clean_snippet,
+                    category='Scientific Discovery'  # Adjust as needed
+                )
+                db.session.add(event_entry)
         db.session.commit()
-        print("Data added successfully.")
+        print("Historical events data added successfully.")
+
+def fetch_maddison_data():
+    df = pd.read_excel(MADDISON_FILE_PATH, sheet_name='Full data')
+    with app.app_context():
+        for index, row in df.iterrows():
+            year = row['year']
+            gdp = row['gdppc']  # Adjust based on the actual column names
+            if pd.notnull(gdp):  # Handle missing values
+                existing_record = EconomicData.query.filter_by(year=year).first()
+                if existing_record:
+                    existing_record.gdp = gdp  # Update the existing record
+                else:
+                    new_record = EconomicData(year=year, gdp=gdp)  # Add a new record
+                    db.session.add(new_record)
+        db.session.commit()
+        print("Maddison Project data added/updated successfully.")
+
+def fetch_all_data():
+    fetch_and_store_events()
+    fetch_maddison_data()
 
 if __name__ == '__main__':
-    fetch_and_store_events()
+    fetch_all_data()

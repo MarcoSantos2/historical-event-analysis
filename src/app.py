@@ -1,29 +1,35 @@
 # src/app.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///events.db'  # For simplicity, using SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///history.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-class Event(db.Model):
+class Discovery(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(256), nullable=False)
-    snippet = db.Column(db.Text, nullable=False)
+    name = db.Column(db.String(256), nullable=False)
+    date = db.Column(db.String(128), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(128), nullable=False)
 
     def __repr__(self):
-        return f'<Event {self.title}>'
+        return f'<Discovery {self.name}>'
+
+class EconomicData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    gdp = db.Column(db.Float, nullable=False)
+
+    def __repr__(self):
+        return f'<EconomicData {self.year}>'
 
 @app.route('/')
 def home():
     return "Hello, Flask!"
 
-@app.route('/events')
-def events():
-    events = Event.query.all()
-    return "<br>".join([f"{event.title}, {event.snippet}" for event in events])
-
 if __name__ == '__main__':
     app.run(debug=True)
-

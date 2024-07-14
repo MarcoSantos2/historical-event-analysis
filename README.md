@@ -27,3 +27,5 @@ o	Github
 o	Git
 
 
+Here is a list of some of the challanges I faced:
+- Capturing the exact dates of the historical events from the Wikipedia's API was challanging, considering the unstructured natured of the returned data. I decided to use a regular expression to extract the first four-digit year from the text. This is clearly not perfect since it is possible that the first 4-digit number might be the wrong date of not a date at all.
