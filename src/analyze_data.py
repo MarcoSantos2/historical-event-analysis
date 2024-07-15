@@ -1,37 +1,53 @@
 # src/analyze_data.py
 import pandas as pd
-from app import db, Discovery, EconomicData
+from app import app, db, Discovery, EconomicData
 
 def analyze():
-    # Fetch data from the database
-    discoveries = pd.read_sql(db.session.query(Discovery).statement, db.session.bind)
-    economic_data = pd.read_sql(db.session.query(EconomicData).statement, db.session.bind)
+    with app.app_context():
+        # Fetch data from the database
+        discoveries_query = db.session.query(Discovery).statement
+        economic_data_query = db.session.query(EconomicData).statement
 
-    # Ensure date formats are consistent
-    discoveries['date'] = pd.to_datetime(discoveries['date'], errors='coerce').dropna()
-    economic_data['year'] = pd.to_datetime(economic_data['year'], format='%Y')
+        discoveries = pd.read_sql(discoveries_query, db.engine)
+        economic_data = pd.read_sql(economic_data_query, db.engine)
 
-    # Merge datasets on the date/year
-    combined = discoveries.merge(economic_data, left_on='date', right_on='year', how='inner')
+        # Ensure date formats are consistent
+        discoveries['date'] = pd.to_datetime(discoveries['date'], errors='coerce').dropna()
+        economic_data['year'] = pd.to_datetime(economic_data['year'], format='%Y')
 
-    # Example Analysis 1: Correlation between number of discoveries and GDP
-    discoveries_per_year = discoveries['date'].dt.year.value_counts().sort_index()
-    gdp_per_year = economic_data.set_index('year')['gdp']
+        # Calculate cumulative discoveries over the past 30 years
+        discoveries['year'] = discoveries['date'].dt.year
+        cumulative_discoveries = discoveries.groupby('year').size().rolling(window=30, min_periods=1).sum()
 
-    correlation = discoveries_per_year.corr(gdp_per_year)
-    print(f"Correlation between number of discoveries and GDP: {correlation:.2f}")
+        # Align cumulative discoveries with GDP data
+        gdp_per_year = economic_data.set_index('year')['gdp']
+        cumulative_discoveries.index = pd.to_datetime(cumulative_discoveries.index, format='%Y')
+        gdp_per_year.index = pd.to_datetime(gdp_per_year.index, format='%Y')
+        
+        cumulative_discoveries = cumulative_discoveries.reindex(gdp_per_year.index, method='ffill').fillna(0)
 
-    # Example Analysis 2: Discoveries during significant GDP growth periods
-    gdp_growth = economic_data['gdp'].pct_change().fillna(0)
-    significant_growth_periods = economic_data[gdp_growth > 0.05]  # e.g., > 5% growth
-    discoveries_during_growth = discoveries[discoveries['date'].dt.year.isin(significant_growth_periods['year'].dt.year)]
+        # Debug: Print correlation calculation inputs
+        print("\nCumulative Discoveries (last 30 years) per year:")
+        print(cumulative_discoveries)
 
-    print("Discoveries during significant GDP growth periods:")
-    print(discoveries_during_growth)
+        print("\nGDP per year:")
+        print(gdp_per_year)
 
-    # Save results to CSV for further inspection
-    combined.to_csv('combined_data.csv', index=False)
-    discoveries_during_growth.to_csv('discoveries_during_growth.csv', index=False)
+        # Calculate correlation
+        correlation = cumulative_discoveries.corr(gdp_per_year)
+        print(f"\nCorrelation between cumulative discoveries (last 30 years) and GDP: {correlation:.2f}")
+
+        # Example Analysis 2: Discoveries during significant GDP growth periods
+        gdp_growth = economic_data['gdp'].pct_change().fillna(0)
+        significant_growth_periods = economic_data[gdp_growth > 0.05]  # e.g., > 5% growth
+        discoveries_during_growth = discoveries[discoveries['year'].isin(significant_growth_periods['year'].dt.year)]
+
+        print("\nDiscoveries during significant GDP growth periods:")
+        print(discoveries_during_growth)
+
+        # Save results to CSV for further inspection
+        cumulative_discoveries.to_csv('cumulative_discoveries.csv', header=['cumulative_discoveries'])
+        discoveries_during_growth.to_csv('discoveries_during_growth.csv', index=False)
 
 if __name__ == '__main__':
     analyze()
