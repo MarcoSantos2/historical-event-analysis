@@ -1,43 +1,38 @@
-# src/visualize_data.py
+# visualize_data.py
+
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+import statsmodels.api as sm
+from app import db, Discovery, EconomicData
 
 def visualize():
-    # Load the data
-    cumulative_discoveries = pd.read_csv('cumulative_discoveries.csv', index_col=0, parse_dates=True)
-    gdp_per_year = pd.read_csv('gdp_per_year.csv', index_col=0, parse_dates=True)
+    discoveries = pd.read_csv('cumulative_discoveries.csv', index_col=0, parse_dates=True)
+    gdp_per_year = pd.read_excel('mpd2020.xlsx', sheet_name='Full data', index_col='year', parse_dates=True)
 
-    # Visualization
-    plt.figure(figsize=(12, 6))
+    # Merge datasets on the date/year
+    combined = discoveries.merge(gdp_per_year, left_index=True, right_index=True, how='inner')
 
-    # Plot cumulative discoveries
-    plt.subplot(2, 1, 1)
-    plt.plot(cumulative_discoveries, label='Cumulative Discoveries (last 30 years)', color='blue')
-    plt.title('Cumulative Discoveries Over Time')
-    plt.xlabel('Year')
-    plt.ylabel('Cumulative Discoveries')
-    plt.legend()
+    # Create scatter plot
+    plt.figure(figsize=(10, 6))
+    plt.scatter(combined['cumulative_discoveries'], combined['gdppc'], label='Data Points')
 
-    # Plot GDP
-    plt.subplot(2, 1, 2)
-    plt.plot(gdp_per_year, label='GDP', color='green')
-    plt.title('GDP Over Time')
-    plt.xlabel('Year')
-    plt.ylabel('GDP')
-    plt.legend()
+    # Add regression line
+    X = sm.add_constant(combined['cumulative_discoveries'])  # Adds a constant term to the predictor
+    model = sm.OLS(combined['gdppc'], X).fit()
+    predictions = model.predict(X)
 
-    plt.tight_layout()
-    plt.savefig('discoveries_and_gdp_over_time.png')
-    plt.show()
-
-    # Scatter plot for correlation
-    plt.figure(figsize=(8, 6))
-    sns.scatterplot(x=cumulative_discoveries.squeeze(), y=gdp_per_year.squeeze())
+    plt.plot(combined['cumulative_discoveries'], predictions, color='red', label='Regression Line')
+    
+    # Add titles and labels
     plt.title('Correlation between Cumulative Discoveries and GDP')
     plt.xlabel('Cumulative Discoveries (last 30 years)')
     plt.ylabel('GDP')
-    plt.savefig('correlation_scatter_plot.png')
+
+    # Add legend
+    plt.legend()
+
+    # Save the plot
+    plt.savefig('correlation_scatter_plot_with_regression.png')
     plt.show()
 
 if __name__ == '__main__':

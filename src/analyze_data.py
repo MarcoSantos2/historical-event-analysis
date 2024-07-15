@@ -1,53 +1,59 @@
-# src/analyze_data.py
+# src/visualize_data.py
 import pandas as pd
-from app import app, db, Discovery, EconomicData
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-def analyze():
-    with app.app_context():
-        # Fetch data from the database
-        discoveries_query = db.session.query(Discovery).statement
-        economic_data_query = db.session.query(EconomicData).statement
+def visualize():
+    # Load the data
+    cumulative_discoveries = pd.read_csv('cumulative_discoveries.csv', index_col=0, parse_dates=True)
+    gdp_data = pd.read_excel('mpd2020.xlsx', sheet_name='Full data')
+    gdp_per_year = gdp_data.set_index('year')['gdppc']
 
-        discoveries = pd.read_sql(discoveries_query, db.engine)
-        economic_data = pd.read_sql(economic_data_query, db.engine)
+    # Debug prints
+    print("Cumulative Discoveries:")
+    print(cumulative_discoveries.head())
+    print("GDP Per Year:")
+    print(gdp_per_year.head())
 
-        # Ensure date formats are consistent
-        discoveries['date'] = pd.to_datetime(discoveries['date'], errors='coerce').dropna()
-        economic_data['year'] = pd.to_datetime(economic_data['year'], format='%Y')
+    # Align datasets
+    combined_data = pd.merge(cumulative_discoveries, gdp_per_year, left_index=True, right_index=True, how='inner')
+    combined_data.columns = ['cumulative_discoveries', 'gdp']
+    
+    # Debug print combined data
+    print("Combined Data:")
+    print(combined_data.head())
 
-        # Calculate cumulative discoveries over the past 30 years
-        discoveries['year'] = discoveries['date'].dt.year
-        cumulative_discoveries = discoveries.groupby('year').size().rolling(window=30, min_periods=1).sum()
+    # Visualization
+    plt.figure(figsize=(12, 6))
 
-        # Align cumulative discoveries with GDP data
-        gdp_per_year = economic_data.set_index('year')['gdp']
-        cumulative_discoveries.index = pd.to_datetime(cumulative_discoveries.index, format='%Y')
-        gdp_per_year.index = pd.to_datetime(gdp_per_year.index, format='%Y')
-        
-        cumulative_discoveries = cumulative_discoveries.reindex(gdp_per_year.index, method='ffill').fillna(0)
+    # Plot cumulative discoveries
+    plt.subplot(2, 1, 1)
+    plt.plot(combined_data['cumulative_discoveries'], label='Cumulative Discoveries (last 30 years)', color='blue')
+    plt.title('Cumulative Discoveries Over Time')
+    plt.xlabel('Year')
+    plt.ylabel('Cumulative Discoveries')
+    plt.legend()
 
-        # Debug: Print correlation calculation inputs
-        print("\nCumulative Discoveries (last 30 years) per year:")
-        print(cumulative_discoveries)
+    # Plot GDP
+    plt.subplot(2, 1, 2)
+    plt.plot(combined_data['gdp'], label='GDP', color='green')
+    plt.title('GDP Over Time')
+    plt.xlabel('Year')
+    plt.ylabel('GDP')
+    plt.legend()
 
-        print("\nGDP per year:")
-        print(gdp_per_year)
+    plt.tight_layout()
+    plt.savefig('discoveries_and_gdp_over_time.png')
+    plt.show()
 
-        # Calculate correlation
-        correlation = cumulative_discoveries.corr(gdp_per_year)
-        print(f"\nCorrelation between cumulative discoveries (last 30 years) and GDP: {correlation:.2f}")
-
-        # Example Analysis 2: Discoveries during significant GDP growth periods
-        gdp_growth = economic_data['gdp'].pct_change().fillna(0)
-        significant_growth_periods = economic_data[gdp_growth > 0.05]  # e.g., > 5% growth
-        discoveries_during_growth = discoveries[discoveries['year'].isin(significant_growth_periods['year'].dt.year)]
-
-        print("\nDiscoveries during significant GDP growth periods:")
-        print(discoveries_during_growth)
-
-        # Save results to CSV for further inspection
-        cumulative_discoveries.to_csv('cumulative_discoveries.csv', header=['cumulative_discoveries'])
-        discoveries_during_growth.to_csv('discoveries_during_growth.csv', index=False)
+    # Scatter plot for correlation
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(x=combined_data['cumulative_discoveries'], y=combined_data['gdp'])
+    plt.title('Correlation between Cumulative Discoveries and GDP')
+    plt.xlabel('Cumulative Discoveries (last 30 years)')
+    plt.ylabel('GDP')
+    plt.savefig('correlation_scatter_plot.png')
+    plt.show()
 
 if __name__ == '__main__':
-    analyze()
+    visualize()
