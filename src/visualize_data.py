@@ -1,5 +1,3 @@
-# visualize_data.py
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
@@ -12,7 +10,30 @@ def visualize():
     # Merge datasets on the date/year
     combined = discoveries.merge(gdp_per_year, left_index=True, right_index=True, how='inner')
 
-    # Create scatter plot
+    # Visualization 1: Cumulative Discoveries and GDP Over Time
+    plt.figure(figsize=(12, 6))
+
+    # Plot cumulative discoveries
+    plt.subplot(2, 1, 1)
+    plt.plot(combined.index, combined['cumulative_discoveries'], label='Cumulative Discoveries (last 30 years)', color='blue')
+    plt.title('Cumulative Discoveries Over Time')
+    plt.xlabel('Year')
+    plt.ylabel('Cumulative Discoveries')
+    plt.legend()
+
+    # Plot GDP
+    plt.subplot(2, 1, 2)
+    plt.plot(combined.index, combined['gdppc'], label='GDP', color='green')
+    plt.title('GDP Over Time')
+    plt.xlabel('Year')
+    plt.ylabel('GDP')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig('discoveries_and_gdp_over_time.png')
+    plt.show()
+
+    # Visualization 2: Scatter plot for correlation
     plt.figure(figsize=(10, 6))
     plt.scatter(combined['cumulative_discoveries'], combined['gdppc'], label='Data Points')
 
