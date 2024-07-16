@@ -1,13 +1,38 @@
 body {
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    text-align: center; /* Center all text by default */
+}
+
+h1 {
+    text-align: center;
+    margin: 20px 0;
+}
+
+h2 {
+    font-size: 24px; /* Increase font size */
+    margin: 20px 0;
 }
 
 .container {
     width: 80%;
     margin: 0 auto;
-    text-align: center;
+    text-align: center; /* Center content inside the container */
 }
 
-.chart-container {
+.graph {
+    text-align: center;
     margin: 20px 0;
+}
+
+img {
+    width: 80%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    display: block; /* Ensure images are centered */
+    margin: 0 auto; /* Center images */
 }
