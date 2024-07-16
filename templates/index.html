@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Form</title>
+    <title>Historical Event Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <form action="/echo_user_input" method="POST">
-        <input name="user_input" required>
-        <input type="submit" value="Submit!">
-    </form>
+    <h1>Historical Event Analysis</h1>
+    <h2 align="center">Cumulative Discoveries Over Time</h2>
+    <img src="{{ url_for('static', filename='discoveries_and_gdp_over_time.png') }}" alt="Cumulative Discoveries Over Time">
+    <h2>Correlation between Cumulative Discoveries and GDP</h2>
+    <img src="{{ url_for('static', filename='correlation_scatter_plot_with_regression.png') }}" alt="Correlation Scatter Plot">
 </body>
 </html>
