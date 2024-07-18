@@ -4,18 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historical Event Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Historical Event Analysis</h1>
-    
-    <h2>Cumulative Discoveries Over Time</h2>
-    {{ discovery_graph|safe }}
+    <div class="container">
+        <h1>Historical Event Analysis</h1>
 
-    <h2>GDP Growth Over Time</h2>
-    {{ gdp_graph|safe }}
+        <div class="graph">
+            <h2>Cumulative Discoveries Over Time</h2>
+            <img src="{{ url_for('static', filename='discoveries_and_gdp_over_time.png') }}" alt="Cumulative Discoveries Over Time">
+        </div>
 
-    <h2>Combined View of Cumulative Discoveries and GDP Growth</h2>
-    {{ combined_graph|safe }}
+        <div class="graph">
+            <h2>Correlation between Cumulative Discoveries and GDP</h2>
+            <img src="{{ url_for('static', filename='correlation_scatter_plot_with_regression.png') }}" alt="Correlation Scatter Plot">
+        </div>
+    </div>
 
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>
