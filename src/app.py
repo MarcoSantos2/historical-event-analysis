@@ -38,7 +38,7 @@
 
 
 
-src/app.py
+#src/app.py
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
