@@ -1,60 +1,55 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import statsmodels.api as sm
+import plotly.graph_objects as go
 from app import db, Discovery, EconomicData
 
 def visualize():
-    discoveries = pd.read_csv('cumulative_discoveries.csv', index_col=0, parse_dates=True)
-    gdp_per_year = pd.read_excel('mpd2020.xlsx', sheet_name='Full data', index_col='year', parse_dates=True)
+    # Fetch data from the database
+    with app.app_context():
+        discoveries_query = db.session.query(Discovery).statement
+        economic_data_query = db.session.query(EconomicData).statement
 
-    # Merge datasets on the date/year
-    combined = discoveries.merge(gdp_per_year, left_index=True, right_index=True, how='inner')
+        discoveries = pd.read_sql(discoveries_query, db.engine)
+        economic_data = pd.read_sql(economic_data_query, db.engine)
 
-    # Visualization 1: Cumulative Discoveries and GDP Over Time
-    plt.figure(figsize=(12, 6))
+        # Ensure date formats are consistent
+        discoveries['date'] = pd.to_datetime(discoveries['date'], errors='coerce').dropna()
+        economic_data['year'] = pd.to_datetime(economic_data['year'], format='%Y')
 
-    # Plot cumulative discoveries
-    plt.subplot(2, 1, 1)
-    plt.plot(combined.index, combined['cumulative_discoveries'], label='Cumulative Discoveries (last 30 years)', color='blue')
-    plt.title('Cumulative Discoveries Over Time')
-    plt.xlabel('Year')
-    plt.ylabel('Cumulative Discoveries')
-    plt.legend()
+        # Calculate cumulative discoveries over the past 30 years
+        discoveries['year'] = discoveries['date'].dt.year
+        cumulative_discoveries = discoveries.groupby('year').size().rolling(window=30, min_periods=1).sum()
 
-    # Plot GDP
-    plt.subplot(2, 1, 2)
-    plt.plot(combined.index, combined['gdppc'], label='GDP', color='green')
-    plt.title('GDP Over Time')
-    plt.xlabel('Year')
-    plt.ylabel('GDP')
-    plt.legend()
+        # Align cumulative discoveries with GDP data
+        gdp_per_year = economic_data.set_index('year')['gdp']
+        cumulative_discoveries.index = pd.to_datetime(cumulative_discoveries.index, format='%Y')
+        gdp_per_year.index = pd.to_datetime(gdp_per_year.index, format='%Y')
 
-    plt.tight_layout()
-    plt.savefig('discoveries_and_gdp_over_time.png')
-    plt.show()
+        cumulative_discoveries = cumulative_discoveries.reindex(gdp_per_year.index, method='ffill').fillna(0)
 
-    # Visualization 2: Scatter plot for correlation
-    plt.figure(figsize=(10, 6))
-    plt.scatter(combined['cumulative_discoveries'], combined['gdppc'], label='Data Points')
+    # Plot combined graph with Plotly
+    fig = go.Figure()
 
-    # Add regression line
-    X = sm.add_constant(combined['cumulative_discoveries'])  # Adds a constant term to the predictor
-    model = sm.OLS(combined['gdppc'], X).fit()
-    predictions = model.predict(X)
+    # Add cumulative discoveries
+    fig.add_trace(go.Scatter(x=cumulative_discoveries.index, y=cumulative_discoveries.values,
+                             mode='lines', name='Cumulative Discoveries'))
 
-    plt.plot(combined['cumulative_discoveries'], predictions, color='red', label='Regression Line')
-    
-    # Add titles and labels
-    plt.title('Correlation between Cumulative Discoveries and GDP')
-    plt.xlabel('Cumulative Discoveries (last 30 years)')
-    plt.ylabel('GDP')
+    # Add GDP
+    fig.add_trace(go.Scatter(x=gdp_per_year.index, y=gdp_per_year.values,
+                             mode='lines', name='GDP', yaxis='y2'))
 
-    # Add legend
-    plt.legend()
+    # Create axis objects
+    fig.update_layout(
+        title="Cumulative Discoveries and GDP Growth Over Time",
+        xaxis=dict(title='Year'),
+        yaxis=dict(title='Cumulative Discoveries'),
+        yaxis2=dict(title='GDP', overlaying='y', side='right')
+    )
 
-    # Save the plot
-    plt.savefig('correlation_scatter_plot_with_regression.png')
-    plt.show()
+    # Add zoom feature
+    fig.update_layout(hovermode="x unified")
+
+    # Save plot
+    fig.write_html("templates/combined_graph.html")
 
 if __name__ == '__main__':
     visualize()
