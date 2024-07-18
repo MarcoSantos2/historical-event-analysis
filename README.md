@@ -29,4 +29,5 @@ o	Git
 
 Here is a list of some of the challanges I faced:
 - Capturing the exact dates of the historical events from the Wikipedia's API was challanging, considering the unstructured natured of the returned data. I decided to use a regular expression to extract the first four-digit year from the text. This is clearly not perfect since it is possible that the first 4-digit number might be the wrong date of not a date at all.
-- I have decided to go with manual entry for the discovery year. Wikipedia's data seem to be too unstructure to allow for code to find it.
+- I have decided to go with manual entry for the discovery year. Wikipedia's data seem to be too unstructure to allow for code to find it. Another issue seems to be that technological discoveries have multiple discovery dates. Because of iteration and MVP looking very different than the technology that also generated change in the world, it is hard to pinpoint a specific date.
+- Path Dependency - files must be in exact folders. Folders must be in exact folders. Location location location should be the software development mantra as well.
