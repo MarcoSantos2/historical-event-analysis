@@ -9,8 +9,6 @@ cryptography==3.4.8
 cycler==0.12.1
 dacite==1.8.1
 dbus-python==1.2.18
-distro==1.7.0
-distro-info==1.1+ubuntu0.1
 dnspython==2.6.1
 et-xmlfile==1.1.0
 exceptiongroup==1.2.1
