@@ -12,12 +12,12 @@
 
         <div class="graph">
             <h2>Cumulative Discoveries Over Time</h2>
-            <img src="{{ url_for('static', filename='discoveries_and_gdp_over_time.png') }}" alt="Cumulative Discoveries Over Time">
+            <iframe src="{{ url_for('static', filename='discoveries_and_gdp_over_time.html') }}" width="100%" height="600"></iframe>
         </div>
 
         <div class="graph">
             <h2>Correlation between Cumulative Discoveries and GDP</h2>
-            <img src="{{ url_for('static', filename='correlation_scatter_plot_with_regression.png') }}" alt="Correlation Scatter Plot">
+            <iframe src="{{ url_for('static', filename='correlation_scatter_plot_with_regression.html') }}" width="100%" height="600"></iframe>
         </div>
     </div>
 
