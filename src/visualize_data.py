@@ -25,7 +25,7 @@ def visualize():
     # Create a subplot with 3 rows and 1 column
     fig = make_subplots(
         rows=3, cols=1,
-        subplot_titles=("Cumulative Discoveries and GDP Analysis", "GDP Over Time", "Cumulative Discoveries and GDP Over Time"),
+        subplot_titles=("Cumulative Discoveries Over Time", "GDP Over Time", "Cumulative Discoveries and GDP Over Time"),
         specs=[[{"secondary_y": False}], [{"secondary_y": False}], [{"secondary_y": True}]]
     )
 
@@ -54,7 +54,7 @@ def visualize():
 
     # Update layout for titles and axis labels
     fig.update_layout(
-        #title_text="Cumulative Discoveries and GDP Analysis",
+        title_text="Cumulative Discoveries and GDP Analysis",
         height=900  # Adjust height for better spacing
     )
 
@@ -90,6 +90,7 @@ def visualize():
 
 if __name__ == '__main__':
     visualize()
+
 
 
 
