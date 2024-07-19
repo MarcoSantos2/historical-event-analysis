@@ -1,3 +1,5 @@
+# src/analyze_data.py
+
 import pandas as pd
 from app import app, db, Discovery, EconomicData
 

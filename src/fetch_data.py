@@ -1,3 +1,5 @@
+# src/fetch_data.py
+
 import requests
 from bs4 import BeautifulSoup
 from app import app, db, Discovery, EconomicData
