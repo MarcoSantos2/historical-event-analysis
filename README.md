@@ -1,4 +1,4 @@
-# historical-event-analysis - https://historical-event-analysis-208cb43b9ace.herokuapp.com/
+#[ historical-event-analysis]([url](https://historical-event-analysis-208cb43b9ace.herokuapp.com/)) - https://historical-event-analysis-208cb43b9ace.herokuapp.com/
 Historical Event Analysis and Visualization app
 
 Description: the Historical Event Analysis application is designed to analyze and visualize the correlation between significant historical discoveries and economic data (specifically GDP per capita) over time. This web-based application aims to provide insightful visualizations that help users understand how technological and scientific advancements have impacted economic growth.
